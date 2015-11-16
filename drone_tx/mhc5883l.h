@@ -74,6 +74,12 @@ void loop_mhc5883l(void)
   sensors_event_t event; 
   mag.getEvent(&event);
  
+  mx = event.magnetic.x;
+  my = event.magnetic.y;
+  mz = event.magnetic.z;
+
+
+
   /* Display the results (magnetic vector values are in micro-Tesla (uT)) */
   Serial.print("X: "); Serial.print(event.magnetic.x); Serial.print("  ");
   Serial.print("Y: "); Serial.print(event.magnetic.y); Serial.print("  ");
@@ -90,13 +96,13 @@ void loop_mhc5883l(void)
   float declinationAngle = 0.22;
   heading += declinationAngle;
   
-  // Correct for when signs are reversed.
-  if(heading < 0)
-    heading += 2*PI;
+  // // Correct for when signs are reversed.
+  // if(heading < 0)
+  //   heading += 2*PI;
     
-  // Check for wrap due to addition of declination.
-  if(heading > 2*PI)
-    heading -= 2*PI;
+  // // Check for wrap due to addition of declination.
+  // if(heading > 2*PI)
+  //   heading -= 2*PI;
    
   // Convert radians to degrees for readability.
   float headingDegrees = heading * 180/M_PI; 

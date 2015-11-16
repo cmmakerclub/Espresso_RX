@@ -706,7 +706,8 @@ void setup_mpu()
   Serial.print(F(", error = "));
   Serial.println(error,DEC);
 
-
+  // while (MPU6050_write_reg (MPU6050_CLKSEL_X, 1) != 0);
+   while (MPU6050_write_reg (MPU6050_DLPF_5HZ, 1) != 0);
   // Clear the 'sleep' bit to start the sensor.
   MPU6050_write_reg (MPU6050_PWR_MGMT_1, 0);
 }
@@ -723,6 +724,14 @@ void loop_mpu()
   MPU6050_read (MPU6050_ACCEL_XOUT_H, (uint8_t *) &accel_t_gyro, sizeof(accel_t_gyro));
 
   // Print the raw acceleration values
+
+ 	ax = accel_t_gyro.value.x_accel;
+ 	ay = accel_t_gyro.value.y_accel;
+ 	az = accel_t_gyro.value.z_accel;
+ 	gx = accel_t_gyro.value.x_gyro;
+ 	gy = accel_t_gyro.value.y_gyro;
+ 	gz = accel_t_gyro.value.z_gyro;
+
 
   Serial.print(F("accel x,y,z: "));
   Serial.print(accel_t_gyro.value.x_accel, DEC);

@@ -1,3 +1,15 @@
+float ax = 0;
+float ay = 0;
+float az = 0;
+float gx = 0;
+float gy = 0;
+float gz = 0;
+float mx = 0;
+float my = 0;
+float mz = 0;
+
+#define Rad2Degree       57.27272727272727f
+
 #include <AuthClient.h>
 #include <MicroGear.h>
 #include <MQTTClient.h>
@@ -14,6 +26,7 @@
 const char* ssid     = "NAT.WRTNODE";
 const char* password = "devicenetwork";
 
+
 #define APPID       "DroneNETPIE"
 #define GEARKEY     "gaLObmI5p3Nsipr"
 #define GEARSECRET  "tuVDXPN8QJYRtCQzrA8yeQwhxu8fUA"
@@ -28,6 +41,8 @@ uint8_t connect_state = 0;
 unsigned long time_now = 0;
 unsigned long time_prev_netpie = 0;
 unsigned long time_prev_sensors = 0;
+float a, b, c;
+
 
 MicroGear microgear(client);
 
@@ -60,7 +75,9 @@ void onConnected(char *attribute, uint8_t* msg, unsigned int msglen) {
 }
 
 void loop_netpie();
-void loop_sensors();
+void loop_sensors(float _dt);
+void loop_remote();
+float smooth_fliter(float beta, float new_data, float prev_data);
 
 void setup() {
   /* Event listener */
@@ -75,15 +92,13 @@ void setup() {
   setup_oled();
 
   display.setCursor(0,0); 
-  display.print("Starting...");
+  display.println("CMMC.Espresso.NETPIE");
   display.display();
-  delay(500);
-  display.println(" OK!");
-  display.display();
-  delay(100);
+  delay(2000);
 
-  setup_mpu();
-  display.print("Init MPU6050...");
+
+//  setup_mpu();
+  display.print("Starting...");
   display.display();
   delay(500);
   display.println(" OK!");
@@ -114,8 +129,8 @@ void setup() {
         x = 0;
         display.clearDisplay();
         display.setCursor(0,0); 
+        display.println("CMMC.Espresso.NETPIE");
         display.println("Starting... OK!");
-        display.println("Init MPU6050... OK!");
         display.println("Init MHC5883L... OK!");
         display.print("Init WIFI.");
         display.display(); 
@@ -134,7 +149,8 @@ void setup() {
 
   display.clearDisplay();
   display.setCursor(0,0); 
-  display.println(" microGear Connecting.");
+  display.println("");
+  display.print(" MicroGear Connecting.");
   display.display();
 
 
@@ -160,17 +176,21 @@ void loop()
 
     while(1)
     {
-      delay(5);
+      delay(1);
       time_now = millis();
 
-
-      loop_sensors();
-
+      float dt = time_now - time_prev_sensors;
+      if(dt >= 10)                                 //  lower than 100 Hz
+      {   
+        loop_sensors(dt);
+        time_prev_sensors = time_now;
+      }
 
       if(time_now - time_prev_netpie >= 100)     // 10Hz
       {
         time_prev_netpie = time_now;
         loop_netpie();
+        loop_remote();
       }
     }
   }
@@ -182,15 +202,15 @@ void loop_netpie()
 
   if (microgear.connected()) 
   {
+    digitalWrite(16, 0);
     microgear.loop();
-    digitalWrite(16, led_state);
-    led_state = !led_state;
 
 
-      //      Serial.println("Publish...");
-      //      microgear.publish("/drone", "publish_hello_too");
-      //      microgear.subscribe("/drone");
-      //      microgear.chat("kk_0x", "Hello");
+
+
+
+    //microgear.publish("/drone", "publish_hello_too");
+    digitalWrite(16, 1);
   }
   else 
   {
@@ -201,27 +221,92 @@ void loop_netpie()
     display.println("Connection   Lost !");
     display.setTextSize(1);
     display.println("");   
-    display.println(" Restart System Plz...");
+    display.println("Restart System Plz...");
     display.display();
     delay(500);
     while(1){}
   } 
 }
 
-void loop_sensors()
+void loop_sensors(float _dt )
 {
-  float dt = time_now - time_prev_sensors;
-  loop_mpu();
+  //loop_mpu();
   loop_mhc5883l();
 
 
+  a = smooth_fliter(0.4, mx, a);
+  b = smooth_fliter(0.4, my, b);
+  c = smooth_fliter(0.4, mz, c);
 
 
 
 
+}
 
 
+void loop_remote(void)
+{    
+  static float R[3][3] = {0};
+
+  float norm = sqrtf(a*a + b*b + c*c);
+  norm = 1 / norm; 
+  float mx = a*norm;
+  float my = b*norm;
+  float mz = c*norm;   
+
+if (!digitalRead(0))
+{
+  float az = -atan2(my,mx);
+
+  R[0][0] = cosf(az);
+  R[0][1] = -sinf(az);
+  R[0][2] = 0;
+  R[1][0] = sinf(az);
+  R[1][1] = cosf(az);
+  R[1][2] = 0;
+  R[2][0] = 0;
+  R[2][1] = 0;
+  R[2][2] = 1;
+
+  float mmx = R[0][0]*mx + R[0][1]*my + R[0][2]*mz;
+  float mmy = R[1][0]*mx + R[1][1]*my + R[1][2]*mz;
+  float mmz = R[2][0]*mx + R[2][1]*my + R[2][2]*mz;
+
+  float ax = -atan2(mmz,mmx);
+
+  R[0][0] = cosf(az);
+  R[0][1] = -sinf(az);
+  R[0][2] = 0;
+  R[1][0] = cosf(ax)*sinf(az);
+  R[1][1] = cosf(ax)*cosf(az);
+  R[1][2] = -sinf(ax);
+  R[2][0] = sinf(ax)*sinf(az);
+  R[2][1] = sinf(ax)*cosf(az);;
+  R[2][2] = cosf(ax);
 
 
-  time_prev_sensors = time_now;
+}
+
+  float mmx = R[0][0]*mx + R[0][1]*my + R[0][2]*mz;
+  float mmy = R[1][0]*mx + R[1][1]*my + R[1][2]*mz;
+  float mmz = R[2][0]*mx + R[2][1]*my + R[2][2]*mz;
+
+
+        display.clearDisplay();
+        display.setCursor(0,0); 
+   
+        display.println(mx);
+        display.println(my);
+        display.println(mz);
+        display.println("");
+        display.println(mmx);
+        display.println(mmy);
+        display.println(mmz);
+        display.display(); 
+}
+
+float smooth_fliter(float beta, float new_data, float prev_data)
+{
+  float data = prev_data + beta*(new_data - prev_data);
+  return data;
 }
