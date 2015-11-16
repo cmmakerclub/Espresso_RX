@@ -42,7 +42,7 @@ unsigned long time_now = 0;
 unsigned long time_prev_netpie = 0;
 unsigned long time_prev_sensors = 0;
 float a, b, c;
-
+float yaw, pitch, roll;
 
 MicroGear microgear(client);
 
@@ -153,13 +153,16 @@ void setup() {
   display.print(" MicroGear Connecting.");
   display.display();
 
+  time_now = millis();
+  time_prev_netpie = time_now;
 
 }
 
 void loop() 
 {
+  time_now = millis();
 
-  delay(500);
+
   display.print(".");
   display.display();
 
@@ -194,6 +197,13 @@ void loop()
       }
     }
   }
+
+  delay(500);
+  if(time_now - time_prev_netpie > 5000)
+  {
+    microgear.connect(APPID);
+    time_prev_netpie = time_now;
+  } 
 
 }
 
@@ -246,8 +256,8 @@ void loop_sensors(float _dt )
 
 void loop_remote(void)
 {    
-  static float R[3][3] = {0};
-
+  static float R1[3][3] = {0};
+  static float R2[3][3] = {0};
   float norm = sqrtf(a*a + b*b + c*c);
   norm = 1 / norm; 
   float mx = a*norm;
@@ -256,41 +266,48 @@ void loop_remote(void)
 
 if (!digitalRead(0))
 {
-  float az = -atan2(my,mx);
+  float az = -atan2f(my,mx);
 
-  R[0][0] = cosf(az);
-  R[0][1] = -sinf(az);
-  R[0][2] = 0;
-  R[1][0] = sinf(az);
-  R[1][1] = cosf(az);
-  R[1][2] = 0;
-  R[2][0] = 0;
-  R[2][1] = 0;
-  R[2][2] = 1;
+  R1[0][0] = cosf(az);
+  R1[0][1] = -sinf(az);
+  R1[0][2] = 0;
+  R1[1][0] = sinf(az);
+  R1[1][1] = cosf(az);
+  R1[1][2] = 0;
+  R1[2][0] = 0;
+  R1[2][1] = 0;
+  R1[2][2] = 1;
 
-  float mmx = R[0][0]*mx + R[0][1]*my + R[0][2]*mz;
-  float mmy = R[1][0]*mx + R[1][1]*my + R[1][2]*mz;
-  float mmz = R[2][0]*mx + R[2][1]*my + R[2][2]*mz;
+  float mmx = R1[0][0]*mx + R1[0][1]*my + R1[0][2]*mz;
+  float mmy = R1[1][0]*mx + R1[1][1]*my + R1[1][2]*mz;
+  float mmz = R1[2][0]*mx + R1[2][1]*my + R1[2][2]*mz;
 
-  float ax = -atan2(mmz,mmx);
+  float ay = -atan2f(mmz,mmx);
 
-  R[0][0] = cosf(az);
-  R[0][1] = -sinf(az);
-  R[0][2] = 0;
-  R[1][0] = cosf(ax)*sinf(az);
-  R[1][1] = cosf(ax)*cosf(az);
-  R[1][2] = -sinf(ax);
-  R[2][0] = sinf(ax)*sinf(az);
-  R[2][1] = sinf(ax)*cosf(az);;
-  R[2][2] = cosf(ax);
+  R2[0][0] = cosf(ay)*cosf(az);
+  R2[0][1] = -cosf(ay)*sinf(az);
+  R2[0][2] = sinf(ay);
+  R2[1][0] = sinf(az);
+  R2[1][1] = cosf(az);
+  R2[1][2] = 0;
+  R2[2][0] = -sinf(ay)*cosf(az);
+  R2[2][1] = sinf(ay)*sinf(az);;
+  R2[2][2] = cosf(ay);
 
 
 }
 
-  float mmx = R[0][0]*mx + R[0][1]*my + R[0][2]*mz;
-  float mmy = R[1][0]*mx + R[1][1]*my + R[1][2]*mz;
-  float mmz = R[2][0]*mx + R[2][1]*my + R[2][2]*mz;
+  float mmx = R1[0][0]*mx + R1[0][1]*my + R1[0][2]*mz;
+  float mmy = R1[1][0]*mx + R1[1][1]*my + R1[1][2]*mz;
 
+  yaw = -atan2f(mmy, mmx);
+
+  ax = R2[0][0]*mx + R2[0][1]*my + R2[0][2]*mz;
+  ay = R2[1][0]*mx + R2[1][1]*my + R2[1][2]*mz;
+  az = R2[2][0]*mx + R2[2][1]*my + R2[2][2]*mz;
+
+  roll  = atan2f(-ax, az)*Rad2Degree;
+  pitch = atan2f(ay*ay, (ax*ax + az*az))*Rad2Degree;
 
         display.clearDisplay();
         display.setCursor(0,0); 
@@ -299,9 +316,10 @@ if (!digitalRead(0))
         display.println(my);
         display.println(mz);
         display.println("");
-        display.println(mmx);
-        display.println(mmy);
-        display.println(mmz);
+        display.println(yaw);
+        display.println(pitch);
+        display.println(roll);
+
         display.display(); 
 }
 
