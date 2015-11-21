@@ -17,6 +17,7 @@ const char* password = "devicenetwork";
 #define GEARSECRET  "tuVDXPN8QJYRtCQzrA8yeQwhxu8fUA"
 #define SCOPE       "rw:/drone"
 
+int rx_buffer[4] = {0};
 
 WiFiClient client;
 AuthClient *authclient;
@@ -24,10 +25,32 @@ AuthClient *authclient;
 int timer = 0;
 MicroGear microgear(client);
 
-void onMsghandler(char *topic, uint8_t* msg, unsigned int msglen) {
+void onMsghandler(char *topic, uint8_t* msg, unsigned int msglen) 
+{
   //Serial.print("Incoming message --> ");
+  int8_t rx_index = 0;
+  int8_t char_index = 0;
+  for (int i = 0 + 1; i < msglen; i++)
+  {
+    if((msg[i-1] == 0x2c)&&(msg[i] == 0x2c))
+    {
+      char buffer[] = {"      "};
+      int loop = 0;
+      for (loop = 0; loop < i-char_index; loop++) buffer[loop] = msg[char_index+loop];
+      buffer[loop + 1]  = '\0';
+      rx_buffer[rx_index] = atoi(buffer);
+      char_index = i+1;
+      rx_index++;
+    }
+  }
+
   msg[msglen] = '\0';
   Serial.println((char *)msg);
+  Serial.print("   ");
+  Serial.print(rx_buffer[0]);
+  Serial.print(rx_buffer[1]);
+  Serial.print(rx_buffer[2]);
+  Serial.println(rx_buffer[3]);
 }
 
 void onFoundgear(char *attribute, uint8_t* msg, unsigned int msglen) {
