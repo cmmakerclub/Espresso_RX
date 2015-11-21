@@ -88,6 +88,8 @@ float smooth_fliter(float beta, float new_data, float prev_data);
 
 void setup() {
   /* Event listener */
+  pinMode(13,INPUT_PULLUP);
+  pinMode(15,OUTPUT);
   pinMode(16,OUTPUT);
   digitalWrite(16, 1);
   microgear.on(MESSAGE, onMsghandler);
@@ -139,8 +141,8 @@ void setup() {
         display.clearDisplay();
         display.setCursor(0,0); 
         display.println("CMMC.Espresso.NETPIE");
-        display.println("Starting... OK!");
-        display.println("Init MHC5883L... OK!");
+        display.println("Acceleration... OK!");
+        display.println("Magnetic... OK!");
         display.print("Init WIFI.");
         display.display(); 
       }
@@ -230,6 +232,7 @@ void loop_netpie()
     int8_t buffer_roll = 0;
     int8_t buffer_throttle = 0;
 
+
     //if(watch_dog > 0)
     {
       watch_dog --;
@@ -237,7 +240,7 @@ void loop_netpie()
       buffer_yaw = set_a*3;
       buffer_pitch = set_b*3;
       buffer_roll = set_c*3;      
-      buffer_throttle = set_d;
+      if (!digitalRead(13)) buffer_throttle = 1;
 
       if (buffer_yaw > 100) buffer_yaw = 100;
       if (buffer_pitch > 100) buffer_pitch = 100;
@@ -248,16 +251,17 @@ void loop_netpie()
 
     }
 
-    char ascii[32] ;
-    // ascii[0] = (int8_t)throttle;
-    // ascii[1] = (int8_t)buffer_yaw;
-    // ascii[2] = (int8_t)buffer_pitch;
-    // ascii[3] = (int8_t)buffer_roll;
+    char ascii[32];
+
+    // ascii[1] = (int8_t)throttle;
+    // ascii[2] = (int8_t)buffer_yaw;
+    // ascii[3] = (int8_t)buffer_pitch;
+    // ascii[4] = (int8_t)buffer_roll;
     // ascii[4] = 0xfe;
     // ascii[5]  =0xfe;
-    // ascii[6] = '\0';
+    // ascii[5] = '\0';
 
-    sprintf(ascii,"%d,%d,%d,%d,esp8266", (int8_t)throttle, (int8_t)buffer_yaw,(int8_t)buffer_pitch,(int8_t)buffer_roll);
+     sprintf(ascii,"%d,,%d,,%d,,%d,,ss", (int8_t)buffer_throttle, (int8_t)buffer_yaw,(int8_t)buffer_pitch,(int8_t)buffer_roll);
 
     microgear.publish("/drone", ascii);
 
