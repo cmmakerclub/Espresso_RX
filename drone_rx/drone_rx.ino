@@ -25,7 +25,7 @@ int timer = 0;
 MicroGear microgear(client);
 
 void onMsghandler(char *topic, uint8_t* msg, unsigned int msglen) {
-  Serial.print("Incoming message --> ");
+  //Serial.print("Incoming message --> ");
   msg[msglen] = '\0';
   Serial.println((char *)msg);
 }
@@ -47,6 +47,7 @@ void onLostgear(char *attribute, uint8_t* msg, unsigned int msglen) {
 void onConnected(char *attribute, uint8_t* msg, unsigned int msglen) {
   Serial.println("Connected to NETPIE...");
   microgear.setName("RX");
+  microgear.subscribe("/drone");
 }
 
 
@@ -90,12 +91,12 @@ void loop()
 
 
   if (microgear.connected()) {
-    Serial.println("connected");
+    //Serial.println("connected");
     microgear.loop();
     if (timer >= 1000) {
       //      Serial.println("Publish...");
       //      microgear.publish("/drone", "publish_hello_too");
-            microgear.subscribe("/drone");
+
       //      microgear.chat("kk_0x", "Hello");
       timer = 0;
     }

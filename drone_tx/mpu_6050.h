@@ -707,7 +707,7 @@ void setup_mpu()
   Serial.println(error,DEC);
 
   // while (MPU6050_write_reg (MPU6050_CLKSEL_X, 1) != 0);
-   while (MPU6050_write_reg (MPU6050_DLPF_5HZ, 1) != 0);
+  // while (MPU6050_write_reg (MPU6050_DLPF_5HZ, 1) != 0);
   // Clear the 'sleep' bit to start the sensor.
   MPU6050_write_reg (MPU6050_PWR_MGMT_1, 0);
 }
@@ -733,24 +733,24 @@ void loop_mpu()
  	gz = accel_t_gyro.value.z_gyro;
 
 
-  Serial.print(F("accel x,y,z: "));
-  Serial.print(accel_t_gyro.value.x_accel, DEC);
-  Serial.print(F(", "));
-  Serial.print(accel_t_gyro.value.y_accel, DEC);
-  Serial.print(F(", "));
-  Serial.print(accel_t_gyro.value.z_accel, DEC);
-  Serial.println(F(""));
+  // Serial.print(F("accel x,y,z: "));
+  // Serial.print(accel_t_gyro.value.x_accel, DEC);
+  // Serial.print(F(", "));
+  // Serial.print(accel_t_gyro.value.y_accel, DEC);
+  // Serial.print(F(", "));
+  // Serial.print(accel_t_gyro.value.z_accel, DEC);
+  // Serial.println(F(""));
 
-  // Print the raw gyro values.
+  // // Print the raw gyro values.
 
-  Serial.print(F("gyro x,y,z : "));
-  Serial.print(accel_t_gyro.value.x_gyro, DEC);
-  Serial.print(F(", "));
-  Serial.print(accel_t_gyro.value.y_gyro, DEC);
-  Serial.print(F(", "));
-  Serial.print(accel_t_gyro.value.z_gyro, DEC);
-  Serial.print(F(", "));
-  Serial.println(F(""));
+  // Serial.print(F("gyro x,y,z : "));
+  // Serial.print(accel_t_gyro.value.x_gyro, DEC);
+  // Serial.print(F(", "));
+  // Serial.print(accel_t_gyro.value.y_gyro, DEC);
+  // Serial.print(F(", "));
+  // Serial.print(accel_t_gyro.value.z_gyro, DEC);
+  // Serial.print(F(", "));
+  // Serial.println(F(""));
 
 }
 
