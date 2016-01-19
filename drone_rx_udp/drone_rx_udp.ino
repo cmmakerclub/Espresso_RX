@@ -8,10 +8,10 @@
 #include <ESP_Adafruit_SSD1306.h>
 
 
-#define buffer_size 100
+#define buffer_size 10
 #define OLED_RESET 4
 
-#define period_udp 10
+#define period_udp 1
 #define period_led 1000
 
 Adafruit_SSD1306 display(OLED_RESET);
@@ -32,7 +32,7 @@ int count = 0;
 
 IPAddress local_ip(192, 168, 5, 1);
 IPAddress gateway(192, 168, 5, 1);
-IPAddress subnet(255, 255, 255, 0);
+IPAddress subnet(255, 255, 255, 255);
 
 
 void Read_UDP();
@@ -97,25 +97,25 @@ void loop()
     digitalWrite(12, 0);    // debug
   }
 
-  if (time_now - time_prev_led >= period_led)    // 10Hz
-  {
-    time_prev_led = time_now;
+  // if (time_now - time_prev_led >= period_led)    // 10Hz
+  // {
+  //   time_prev_led = time_now;
 
-    display.clearDisplay();
-    display.setCursor(0, 0);
-    display.println("CMMC.Espresso_lite");
-		display.println("");	
-    display.print((int8_t)packetBuffer[0]);
-    display.print("  ");
-    display.print((int8_t)packetBuffer[1]);
-    display.print("  ");
-    display.print((int8_t)packetBuffer[2]);
-    display.print("  ");
-    display.print((int8_t)packetBuffer[3]);
-    display.print("                            ");
-    display.display();
+  //   display.clearDisplay();
+  //   display.setCursor(0, 0);
+  //   display.println("CMMC.Espresso_lite");
+		// display.println("");	
+  //   display.print((int8_t)packetBuffer[0]);
+  //   display.print("  ");
+  //   display.print((int8_t)packetBuffer[1]);
+  //   display.print("  ");
+  //   display.print((int8_t)packetBuffer[2]);
+  //   display.print("  ");
+  //   display.print((int8_t)packetBuffer[3]);
+  //   display.print("                            ");
+  //   display.display();
 
-  }
+  // }
 
   delay(1);
 }
@@ -133,8 +133,8 @@ void Read_UDP()
     memset(packetBuffer, 0, buffer_size); // clear mem
 
     udp.read(packetBuffer, cb); // read the packet into the buffer
-    String temp = packetBuffer;
-    Serial.println(packetBuffer);
+    // String temp = packetBuffer;
+    // Serial.println(packetBuffer);
 
     // if (count > 8)
     // {
@@ -165,10 +165,12 @@ void Read_UDP()
 
 
     Serial.write((int8_t)packetBuffer[0]);  // roll
-    Serial.write((int8_t)packetBuffer[1]);  // pitch
-    Serial.write((int8_t)packetBuffer[2]);	// throttle
-    Serial.write((int8_t)packetBuffer[3]);	// yaw
-    Serial.write(0xfe);
+    Serial.write((int8_t)packetBuffer[1]);  // roll
+    Serial.write((int8_t)packetBuffer[2]);  // pitch
+    Serial.write((int8_t)packetBuffer[3]);	// throttle
+    Serial.write((int8_t)packetBuffer[4]);	// yaw
+    Serial.write((int8_t)packetBuffer[5]);  // sum
+   
     digitalWrite(16, !digitalRead(16));
 
 
